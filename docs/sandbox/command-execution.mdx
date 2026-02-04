@@ -1,0 +1,50 @@
+---
+title: "Command execution"
+description: "Run shell commands in the sandbox"
+---
+
+Run shell commands in the sandbox using the provider instance returned by `initializeSandbox`.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Basic usage
+
+```typescript
+import { Intella, SandboxProviderType } from 'intella';
+
+const intella = new Intella();
+const sandbox = await intella.initializeSandbox(SandboxProviderType.LOCAL, { cwd: process.cwd() });
+
+const result = await sandbox.executeCommand('npm test', {
+  cwd: '/app',
+  env: { NODE_ENV: 'test' },
+  timeout: 60_000,
+});
+
+console.log(result.exitCode, result.stdout, result.stderr, result.executionTime);
+await sandbox.close();
+```
+
+## Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `cwd` | string | Working directory for the command |
+| `env` | Record<string, string> | Environment variables |
+| `timeout` | number | Timeout in milliseconds |
+
+## Result (CommandResult)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `exitCode` | number | Process exit code |
+| `stdout` | string | Standard output |
+| `stderr` | string | Standard error |
+| `executionTime?` | number | Execution time in milliseconds |
+
+## Next steps
+
+- [Running code](/sandbox/running-code) — Execute Python/JavaScript in the sandbox
+- [Sandbox overview](/sandbox) — Lifecycle and setup

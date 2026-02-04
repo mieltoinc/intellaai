@@ -25,8 +25,26 @@
             "pages": [
               "sandbox-agent",
               "sandbox",
-              "sandbox-providers",
-              "agents-vanilla",
+              "sandbox/command-execution",
+              "sandbox/running-code",
+              "sandbox/filesystem",
+              "sandbox/git-operations",
+              {
+                "group": "Providers",
+                "pages": [
+                  "sandbox/providers/local",
+                  "sandbox/providers/e2b",
+                  "sandbox/providers/vercel",
+                  "sandbox/providers/daytona",
+                  "sandbox/providers/modal",
+                  "sandbox/providers/cloudflare",
+                  "sandbox/providers/firecracker"
+                ]
+              },
+              "agents/supported-agents",
+              "agents/claude-code",
+              "agents/codex",
+              "agents/opencode",
               "session",
               "transport",
               "deployment"

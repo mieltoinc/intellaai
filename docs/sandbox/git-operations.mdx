@@ -1,0 +1,59 @@
+---
+title: "Git operations"
+description: "Clone, status, branches, commit, push, and pull in the sandbox"
+---
+
+All sandbox providers expose a unified `sandbox.git` API on the instance returned by `initializeSandbox`. Daytona uses native `sandbox.git.*` methods; E2B, Modal, Vercel, and Local use `executeCommand` with the git CLI under the same interface.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Methods
+
+| Method | Description |
+|--------|-------------|
+| `clone(url, parentPath, options?)` | Clone repo; options: `branch`, `commitId`, `username`, `password`, `pullOnExists` |
+| `status(repoPath)` | Repository status (currentBranch, ahead, behind, fileStatus) |
+| `branches(repoPath)` | List branches |
+| `createBranch(repoPath, name)` | Create a branch |
+| `checkoutBranch(repoPath, name)` | Checkout a branch |
+| `deleteBranch(repoPath, name)` | Delete a branch |
+| `add(repoPath, paths)` | Stage files |
+| `commit(repoPath, message, authorName, authorEmail)` | Commit; returns `{ sha }` |
+| `push(repoPath, username?, password?)` | Push to remote |
+| `pull(repoPath, username?, password?)` | Pull from remote |
+
+## Clone and status
+
+```typescript
+import { Intella, SandboxProviderType } from 'intella';
+
+const intella = new Intella();
+const sandbox = await intella.initializeSandbox(SandboxProviderType.LOCAL, { cwd: process.cwd() });
+
+await sandbox.git.clone('https://github.com/user/repo.git', 'workspace/repos', { branch: 'main' });
+const REPO_PATH = 'workspace/repos/repo';
+
+const status = await sandbox.git.status(REPO_PATH);
+const { branches } = await sandbox.git.branches(REPO_PATH);
+
+await sandbox.close();
+```
+
+## Branch, add, commit, push
+
+```typescript
+await sandbox.git.createBranch(REPO_PATH, 'feature/x');
+await sandbox.git.checkoutBranch(REPO_PATH, 'feature/x');
+await sandbox.writeFile(`${REPO_PATH}/new.ts`, 'export const x = 1;');
+await sandbox.git.add(REPO_PATH, ['new.ts']);
+const { sha } = await sandbox.git.commit(REPO_PATH, 'feat: add x', 'Author', 'author@example.com');
+await sandbox.git.push(REPO_PATH);
+await sandbox.git.pull(REPO_PATH, 'username', 'token');
+```
+
+## Next steps
+
+- [Filesystem](/sandbox/filesystem) — File read/write and upload/download
+- [Sandbox overview](/sandbox) — Lifecycle and setup

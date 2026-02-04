@@ -1,0 +1,60 @@
+---
+title: "Codex"
+description: "Codex agent: config, models, and usage"
+---
+
+The **Codex** agent is powered by the Codex CLI (OpenAI). It supports reasoning effort, approvals, sandbox mode, and web search.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Prerequisites
+
+- **ai-sdk-provider-codex-cli** (installed with Intella)
+- **OPENAI_API_KEY** environment variable (or Codex CLI auth)
+
+## Configuration
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `model` | string | e.g. `'gpt-5.2-codex'`, `'gpt-5.2'`, `'gpt-5.1-codex-max'`, `'gpt-5.1-codex-mini'` (default: `'gpt-5.2-codex'`) |
+| `verbose` | boolean | Enable verbose logging |
+| `reasoningEffort` | string | e.g. `'low'`, `'medium'`, `'high'` |
+| `approvalMode` | boolean | Enable approval mode |
+| `sandboxMode` | boolean | Run in sandbox mode |
+| `fullAuto` | boolean | Full auto mode |
+| `webSearch` | boolean | Enable web search |
+
+## Usage
+
+```typescript
+import { Intella, AgentType } from 'intella';
+
+const intella = new Intella();
+
+intella.selectAgent(AgentType.CODEX, {
+  model: 'gpt-5.2-codex',
+  verbose: true,
+  reasoningEffort: 'medium',
+});
+
+const response = await intella.executeTask({
+  prompt: 'Explain what a recursive function is in 2-3 sentences, with a simple example.',
+});
+console.log(response.text, response.agentType, response.metadata);
+```
+
+## Streaming
+
+```typescript
+for await (const chunk of intella.streamTask({ prompt: 'Write a React component.' })) {
+  if (!chunk.isDone) process.stdout.write(chunk.text);
+}
+```
+
+## Next steps
+
+- [Claude Code](/agents/claude-code) — Anthropic Claude agent
+- [OpenCode](/agents/opencode) — OpenCode multi-provider agent
+- [Supported agents](/agents/supported-agents) — Overview

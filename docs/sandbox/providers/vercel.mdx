@@ -1,0 +1,47 @@
+---
+title: "Vercel"
+description: "Vercel-based sandboxes for serverless and edge"
+---
+
+The **Vercel** provider runs sandboxes on Vercel infrastructure. Use it when you want sandboxes in the same ecosystem as your Vercel deployment.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VERCEL_OIDC_TOKEN` | When using OIDC | OIDC token for Vercel |
+| `VERCEL_TEAM_ID` | Alternative to OIDC | Your Vercel team ID |
+| `VERCEL_PROJECT_ID` | Yes | Vercel project ID |
+| `VERCEL_TOKEN` | Yes | Vercel API token |
+
+## Configuration
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `env` | Record<string, string> | Environment variables in the sandbox |
+| Provider-specific options | — | See Vercel Sandbox docs for advanced config |
+
+## Usage
+
+```typescript
+import { Intella, SandboxProviderType } from 'intella';
+
+const intella = new Intella();
+
+const sandbox = await intella.initializeSandbox(SandboxProviderType.VERCEL, {
+  env: { NODE_ENV: 'production' },
+});
+
+const sandboxId = sandbox.getSandboxId();
+await sandbox.executeCommand('echo "Hello from Vercel sandbox"');
+await sandbox.close();
+```
+
+## Next steps
+
+- [Deployment](/deployment) — Deploy Intella on Vercel
+- [Other providers](/sandbox/providers/daytona) — Daytona, Modal, E2B, Local

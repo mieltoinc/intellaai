@@ -1,0 +1,58 @@
+---
+title: "OpenCode"
+description: "OpenCode agent: multi-provider config and usage"
+---
+
+The **OpenCode** agent uses the OpenCode SDK provider and supports multiple model backends (e.g. Anthropic). Specify the model as `provider/model-id`.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Prerequisites
+
+- **ai-sdk-provider-opencode-sdk** (installed with Intella)
+- Authenticate with **opencode login** or set provider API keys (e.g. Anthropic)
+
+## Configuration
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `model` | string | Model in format `'provider/model-id'` (e.g. `'anthropic/claude-sonnet-4-5-20250929'`) |
+| `verbose` | boolean | Enable verbose logging |
+| `cwd` | string | Working directory |
+
+Default model: `anthropic/claude-sonnet-4-5`.
+
+## Usage
+
+```typescript
+import { Intella, AgentType } from 'intella';
+
+const intella = new Intella();
+
+intella.selectAgent(AgentType.OPENCODE, {
+  model: 'anthropic/claude-sonnet-4-5-20250929',
+  verbose: true,
+  cwd: process.cwd(),
+});
+
+const response = await intella.executeTask({
+  prompt: 'In 2-3 sentences, explain the difference between synchronous and asynchronous programming.',
+});
+console.log(response.text, response.agentType, response.metadata);
+```
+
+## Streaming
+
+```typescript
+for await (const chunk of intella.streamTask({ prompt: 'Summarize this code.' })) {
+  if (!chunk.isDone) process.stdout.write(chunk.text);
+}
+```
+
+## Next steps
+
+- [Claude Code](/agents/claude-code) — Claude Code agent
+- [Codex](/agents/codex) — Codex agent
+- [Supported agents](/agents/supported-agents) — Overview

@@ -1,0 +1,48 @@
+---
+title: "Local"
+description: "Run sandboxes on your current machine with no API keys"
+---
+
+The **Local** provider runs the sandbox on the current machine. It uses `cwd` as the base directory and generates a machine-specific sandbox ID. No API keys are required.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Environment variables
+
+None. The Local provider does not require any environment variables.
+
+## Configuration
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `cwd` | string | Base directory for the sandbox (default: current working directory) |
+| `env` | Record<string, string> | Environment variables to set in the sandbox |
+
+## Usage
+
+```typescript
+import { Intella, SandboxProviderType } from 'intella';
+
+const intella = new Intella();
+
+const sandbox = await intella.initializeSandbox(SandboxProviderType.LOCAL, {
+  cwd: process.cwd(),
+  env: { NODE_ENV: 'development' },
+});
+
+const sandboxId = sandbox.getSandboxId();
+const result = await sandbox.executeCommand('echo "Hello from Local Sandbox!"');
+console.log(result.stdout, result.exitCode);
+
+const info = await sandbox.getInfo();
+console.log(info.sandboxId, info.provider, info.isRunning);
+
+await sandbox.close();
+```
+
+## Next steps
+
+- [Command execution](/sandbox/command-execution) — Run shell commands
+- [Other providers](/sandbox/providers/e2b) — E2B, Vercel, Daytona, Modal

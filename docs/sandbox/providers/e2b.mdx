@@ -1,0 +1,61 @@
+---
+title: "E2B"
+description: "E2B sandboxes with code interpreter and template support"
+---
+
+The **E2B** provider runs sandboxes on E2B infrastructure. It supports code interpreter, template-based sandboxes, and Python/JavaScript execution.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `E2B_API_KEY` | Yes | Your E2B API key |
+
+## Configuration
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `templateId` | string | E2B template ID (e.g. `'base'` or your custom template) |
+| `env` | Record<string, string> | Environment variables in the sandbox |
+| `fromSandboxId` | string | Connect to an existing sandbox (resume) |
+
+## Usage
+
+```typescript
+import { Intella, SandboxProviderType } from 'intella';
+
+const intella = new Intella();
+
+const sandbox = await intella.initializeSandbox(SandboxProviderType.E2B, {
+  templateId: 'base',
+  env: { NODE_ENV: 'development' },
+});
+
+const sandboxId = sandbox.getSandboxId();
+const result = await sandbox.executeCommand('echo "Hello from E2B"');
+await sandbox.writeFile('/tmp/test.txt', 'Hello, World!');
+const content = await sandbox.readFile('/tmp/test.txt');
+
+await sandbox.close();
+```
+
+## Connect to existing sandbox
+
+```typescript
+const sandbox = await intella.initializeSandbox(SandboxProviderType.E2B, {
+  fromSandboxId: 'sbx-xxx',
+});
+```
+
+<Note>
+  E2B sandboxes are often ephemeral; reconnecting may not be available after the sandbox has been closed.
+</Note>
+
+## Next steps
+
+- [Running code](/sandbox/running-code) — Python/JS in E2B
+- [Other providers](/sandbox/providers/vercel) — Vercel, Daytona, Modal, Local

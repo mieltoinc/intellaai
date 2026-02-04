@@ -1,0 +1,67 @@
+---
+title: "Filesystem"
+description: "Read, write, upload, and download files in the sandbox"
+---
+
+All file operations are on the sandbox instance returned by `initializeSandbox`. Paths are inside the sandbox (remote).
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Methods
+
+| Method | Description |
+|--------|-------------|
+| `readFile(path, opts?)` | Read file; `opts.format`: `'text'` (default), `'bytes'`, `'blob'`, `'stream'` |
+| `writeFile(path, content)` | Write single file; `content`: string, Buffer, Blob, ReadableStream, Uint8Array |
+| `writeFile(entries)` | Write multiple files; `entries`: `Array<{ path, content }>` |
+| `createDirectory(path, opts?)` | Create directory; `opts.recursive` defaults to true |
+| `listFiles(path)` | List directory entries → string[] |
+| `fileExists(path)` | Check if path exists → boolean |
+| `deleteFile(path)` | Delete file in sandbox |
+| `uploadFile(source, remotePath)` | Upload one file; `source`: local path or `http(s)://` / `file://` URL |
+| `uploadFile(entries)` | Upload multiple; `entries`: `Array<{ source, remotePath }>` |
+| `downloadFile(remotePath, localPath)` | Copy from sandbox to host |
+
+## Read and write
+
+```typescript
+import { Intella, SandboxProviderType } from 'intella';
+
+const intella = new Intella();
+const sandbox = await intella.initializeSandbox(SandboxProviderType.E2B, { templateId: 'base' });
+
+await sandbox.writeFile('/tmp/script.py', 'print("hello")');
+const content = await sandbox.readFile('/tmp/script.py');
+const bytes = await sandbox.readFile('/tmp/binary.dat', { format: 'bytes' });
+
+await sandbox.writeFile([
+  { path: '/tmp/a.txt', content: 'a' },
+  { path: '/tmp/b.txt', content: buffer },
+]);
+
+await sandbox.createDirectory('/tmp/out', { recursive: true });
+const files = await sandbox.listFiles('/tmp');
+const exists = await sandbox.fileExists('/tmp/script.py');
+await sandbox.deleteFile('/tmp/script.py');
+
+await sandbox.close();
+```
+
+## Upload and download
+
+```typescript
+await sandbox.uploadFile('./local-file.txt', '/remote/file.txt');
+await sandbox.uploadFile('https://example.com/file.zip', '/remote/file.zip');
+await sandbox.uploadFile([
+  { source: './a.txt', remotePath: '/remote/a.txt' },
+  { source: 'https://example.com/b.txt', remotePath: '/remote/b.txt' },
+]);
+await sandbox.downloadFile('/remote/output.txt', './local-output.txt');
+```
+
+## Next steps
+
+- [Git operations](/sandbox/git-operations) — Clone, commit, push in the sandbox
+- [Sandbox overview](/sandbox) — Lifecycle and setup

@@ -1,0 +1,66 @@
+---
+title: "Claude Code"
+description: "Claude Code agent: config, models, and usage"
+---
+
+The **Claude Code** agent uses the Anthropic Claude models via the Claude Code CLI provider. It is well-suited for coding and reasoning tasks.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Prerequisites
+
+- **ai-sdk-provider-claude-code** (installed with Intella)
+- **Claude Code CLI**: run `claude login` to authenticate
+
+## Configuration
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `model` | `'opus'` \| `'sonnet'` \| `'haiku'` | Claude model (default: `'sonnet'`) |
+| `verbose` | boolean | Enable verbose logging |
+
+## Usage
+
+```typescript
+import { Intella, AgentType } from 'intella';
+
+const intella = new Intella();
+
+intella.selectAgent(AgentType.CLAUDE, {
+  model: 'sonnet',
+  verbose: true,
+});
+
+const response = await intella.executeTask({
+  prompt: 'Write a brief explanation of quantum computing in 2-3 sentences.',
+});
+console.log(response.text, response.agentType, response.metadata);
+```
+
+## Streaming
+
+```typescript
+for await (const chunk of intella.streamTask({ prompt: 'Write a short poem.' })) {
+  if (!chunk.isDone) process.stdout.write(chunk.text);
+}
+```
+
+## TaskRequest options
+
+You can pass `systemPrompt`, `messages`, `temperature`, `maxTokens` in the task request:
+
+```typescript
+await intella.executeTask({
+  prompt: 'Refactor this function.',
+  systemPrompt: 'You are a senior TypeScript developer.',
+  maxTokens: 4096,
+});
+```
+
+## Next steps
+
+- [Codex](/agents/codex) — OpenAI Codex agent
+- [OpenCode](/agents/opencode) — OpenCode multi-provider agent
+- [Supported agents](/agents/supported-agents) — Overview
