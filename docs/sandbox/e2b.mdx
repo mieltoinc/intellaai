@@ -5,10 +5,6 @@ description: "E2B sandboxes with code interpreter and template support"
 
 The **E2B** provider runs sandboxes on E2B infrastructure. It supports code interpreter, template-based sandboxes, and Python/JavaScript execution.
 
-<Info>
-  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
-</Info>
-
 ## Environment variables
 
 | Variable | Required | Description |
@@ -20,7 +16,7 @@ The **E2B** provider runs sandboxes on E2B infrastructure. It supports code inte
 | Option | Type | Description |
 |--------|------|-------------|
 | `templateId` | string | E2B template ID (e.g. `'base'` or your custom template) |
-| `env` | Record<string, string> | Environment variables in the sandbox |
+| `env` | Record\<string, string\> | Environment variables in the sandbox |
 | `fromSandboxId` | string | Connect to an existing sandbox (resume) |
 
 ## Usage
@@ -58,4 +54,4 @@ const sandbox = await intella.initializeSandbox(SandboxProviderType.E2B, {
 ## Next steps
 
 - [Running code](/sandbox/running-code) — Python/JS in E2B
-- [Other providers](/sandbox/providers/vercel) — Vercel, Daytona, Modal, Local
+- [Other providers](/sandbox/providers-vercel) — Vercel, Daytona, Modal, Local

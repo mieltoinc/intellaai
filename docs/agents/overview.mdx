@@ -1,0 +1,59 @@
+---
+title: "Overview"
+description: "Agents and how to run tasks with executeTask or streamTask"
+---
+
+Select an agent, then run a task with **executeTask** or **streamTask**.
+
+## Executing a task
+
+Use **executeTask** to run a task and get the full response.
+
+```typescript
+import { Intella, AgentType } from 'intella';
+
+const intella = new Intella();
+intella.selectAgent(AgentType.CLAUDE, { model: 'sonnet' });
+
+const response = await intella.executeTask({ prompt: 'Explain X in 2 sentences.' });
+console.log(response.text, response.agentType, response.metadata);
+```
+
+Returns a **TaskResponse** with `text`, `agentType`, and optional `metadata`.
+
+## Streaming (streamTask)
+
+Use **streamTask** to stream the response as it’s generated.
+
+```typescript
+for await (const chunk of intella.streamTask({ prompt: 'Write a short poem.' })) {
+  if (!chunk.isDone) process.stdout.write(chunk.text);
+}
+```
+
+**TaskRequest** supports `prompt`, `systemPrompt?`, `messages?`, `temperature?`, `maxTokens?`.
+
+## Agents
+
+| Agent | AgentType | Default model | Auth | Page |
+|-------|-----------|----------------|------|------|
+| **Claude Code** | `AgentType.CLAUDE` | sonnet | `claude login` CLI | [Claude Code](/agents/claude-code) |
+| **Codex** | `AgentType.CODEX` | gpt-5.2-codex | OPENAI_API_KEY | [Codex](/agents/codex) |
+| **OpenCode** | `AgentType.OPENCODE` | anthropic/claude-sonnet-4-5 | `opencode login` or provider keys | [OpenCode](/agents/opencode) |
+
+## Orchestration
+
+Run multiple agents with **orchestrateTask**:
+
+```typescript
+const result = await intella.orchestrateTask(
+  { prompt: 'Analyze this code' },
+  [AgentType.CLAUDE, AgentType.CODEX],
+  'parallel',
+  { combineStrategy: 'merge' }
+);
+```
+
+## Next steps
+
+- [Claude Code](/agents/claude-code) · [Codex](/agents/codex) · [OpenCode](/agents/opencode) · [SandboxAgent](/sandbox-agent)

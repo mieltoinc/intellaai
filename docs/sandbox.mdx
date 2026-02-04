@@ -5,10 +5,6 @@ description: "Create sandboxes, connect to existing ones, and run operations"
 
 Sandbox operations run inside an isolated environment (E2B, Daytona, Modal, Vercel, or local). You **initialize** a sandbox, perform **command**, **code**, **file**, and **git** operations, then **close** it. This page uses **Intella()**; for the recommended single-entry flow (sandbox + optional session), use [SandboxAgent](/sandbox-agent).
 
-<Info>
-  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
-</Info>
-
 ## Creating a sandbox
 
 Create a new sandbox by calling `initializeSandbox` with a provider and config. It returns the sandbox provider instance—no need to call `getActiveSandbox()`. Use the `SandboxProviderType` enum (e.g. `SandboxProviderType.E2B`).
@@ -50,13 +46,13 @@ await sandbox.close();
 
 | Provider | Description |
 |----------|-------------|
-| [Local](/sandbox/providers/local) | Run on your machine; no API keys |
-| [E2B](/sandbox/providers/e2b) | E2B sandboxes with templates and code interpreter |
-| [Vercel](/sandbox/providers/vercel) | Vercel-based sandboxes |
-| [Daytona](/sandbox/providers/daytona) | Language-based sandboxes (Python, TypeScript, Go, Rust) |
-| [Modal](/sandbox/providers/modal) | Modal with registry images and secrets |
-| [Cloudflare](/sandbox/providers/cloudflare) | Coming soon |
-| [Firecracker](/sandbox/providers/firecracker) | Coming soon |
+| [Local](/sandbox/providers-local) | Run on your machine; no API keys |
+| [E2B](/sandbox/providers-e2b) | E2B sandboxes with templates and code interpreter |
+| [Vercel](/sandbox/providers-vercel) | Vercel-based sandboxes |
+| [Daytona](/sandbox/providers-daytona) | Language-based sandboxes (Python, TypeScript, Go, Rust) |
+| [Modal](/sandbox/providers-modal) | Modal with registry images and secrets |
+| [Cloudflare](/sandbox/providers-cloudflare) | Coming soon |
+| [Firecracker](/sandbox/providers-firecracker) | Coming soon |
 
 ## Sandbox setup configuration
 

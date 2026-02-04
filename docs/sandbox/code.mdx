@@ -5,10 +5,6 @@ description: "Execute interpreted code (Python, JavaScript) in the sandbox"
 
 Run interpreted code (e.g. Python, JavaScript) in the sandbox using the sandbox instance returned by `initializeSandbox`. There is no Intella facade for `runCode`—call it directly on the provider.
 
-<Info>
-  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
-</Info>
-
 ## Basic usage
 
 ```typescript
@@ -45,10 +41,10 @@ await sandbox.close();
 | Field | Type | Description |
 |-------|------|-------------|
 | `text?` | string | Main result text |
-| `results` | Array<{ text?, html?, markdown? }> | Result items |
+| `results` | Array\<\{ text?, html?, markdown? \}\> | Result items |
 | `stdout` | string[] | Stdout lines |
 | `stderr` | string[] | Stderr lines |
-| `error?` | { name, value, traceback } | Error details if execution failed |
+| `error?` | \{ name, value, traceback \} | Error details if execution failed |
 | `executionTime?` | number | Execution time in milliseconds |
 
 ## Next steps

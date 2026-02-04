@@ -5,23 +5,19 @@ description: "Read, write, upload, and download files in the sandbox"
 
 All file operations are on the sandbox instance returned by `initializeSandbox`. Paths are inside the sandbox (remote).
 
-<Info>
-  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
-</Info>
-
 ## Methods
 
 | Method | Description |
 |--------|-------------|
 | `readFile(path, opts?)` | Read file; `opts.format`: `'text'` (default), `'bytes'`, `'blob'`, `'stream'` |
 | `writeFile(path, content)` | Write single file; `content`: string, Buffer, Blob, ReadableStream, Uint8Array |
-| `writeFile(entries)` | Write multiple files; `entries`: `Array<{ path, content }>` |
+| `writeFile(entries)` | Write multiple files; `entries`: `Array<\{ path, content \}>` |
 | `createDirectory(path, opts?)` | Create directory; `opts.recursive` defaults to true |
 | `listFiles(path)` | List directory entries → string[] |
 | `fileExists(path)` | Check if path exists → boolean |
 | `deleteFile(path)` | Delete file in sandbox |
 | `uploadFile(source, remotePath)` | Upload one file; `source`: local path or `http(s)://` / `file://` URL |
-| `uploadFile(entries)` | Upload multiple; `entries`: `Array<{ source, remotePath }>` |
+| `uploadFile(entries)` | Upload multiple; `entries`: `Array<\{ source, remotePath \}>` |
 | `downloadFile(remotePath, localPath)` | Copy from sandbox to host |
 
 ## Read and write

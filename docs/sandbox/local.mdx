@@ -5,10 +5,6 @@ description: "Run sandboxes on your current machine with no API keys"
 
 The **Local** provider runs the sandbox on the current machine. It uses `cwd` as the base directory and generates a machine-specific sandbox ID. No API keys are required.
 
-<Info>
-  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
-</Info>
-
 ## Environment variables
 
 None. The Local provider does not require any environment variables.
@@ -18,7 +14,7 @@ None. The Local provider does not require any environment variables.
 | Option | Type | Description |
 |--------|------|-------------|
 | `cwd` | string | Base directory for the sandbox (default: current working directory) |
-| `env` | Record<string, string> | Environment variables to set in the sandbox |
+| `env` | Record\<string, string\> | Environment variables to set in the sandbox |
 
 ## Usage
 
@@ -45,4 +41,4 @@ await sandbox.close();
 ## Next steps
 
 - [Command execution](/sandbox/command-execution) — Run shell commands
-- [Other providers](/sandbox/providers/e2b) — E2B, Vercel, Daytona, Modal
+- [Other providers](/sandbox/providers-e2b) — E2B, Vercel, Daytona, Modal

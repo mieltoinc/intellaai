@@ -5,10 +5,6 @@ description: "Vercel-based sandboxes for serverless and edge"
 
 The **Vercel** provider runs sandboxes on Vercel infrastructure. Use it when you want sandboxes in the same ecosystem as your Vercel deployment.
 
-<Info>
-  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
-</Info>
-
 ## Environment variables
 
 | Variable | Required | Description |
@@ -22,7 +18,7 @@ The **Vercel** provider runs sandboxes on Vercel infrastructure. Use it when you
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `env` | Record<string, string> | Environment variables in the sandbox |
+| `env` | Record\<string, string\> | Environment variables in the sandbox |
 | Provider-specific options | — | See Vercel Sandbox docs for advanced config |
 
 ## Usage
@@ -44,4 +40,4 @@ await sandbox.close();
 ## Next steps
 
 - [Deployment](/deployment) — Deploy Intella on Vercel
-- [Other providers](/sandbox/providers/daytona) — Daytona, Modal, E2B, Local
+- [Other providers](/sandbox/providers-daytona) — Daytona, Modal, E2B, Local

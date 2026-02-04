@@ -24,41 +24,46 @@
             "group": "Using Intella",
             "pages": [
               "sandbox-agent",
-              "sandbox",
-              "sandbox/command-execution",
-              "sandbox/running-code",
-              "sandbox/filesystem",
-              "sandbox/git-operations",
               {
-                "group": "Providers",
+                "group": "Sandbox",
                 "pages": [
-                  "sandbox/providers/local",
-                  "sandbox/providers/e2b",
-                  "sandbox/providers/vercel",
-                  "sandbox/providers/daytona",
-                  "sandbox/providers/modal",
-                  "sandbox/providers/cloudflare",
-                  "sandbox/providers/firecracker"
+                  "sandbox",
+                  {
+                    "group": "Sandbox Operations",
+                    "pages": [
+                      "sandbox/commands",
+                      "sandbox/code",
+                      "sandbox/filesystem",
+                      "sandbox/git-operations"
+                    ]
+                  },
+                  {
+                    "group": "Providers",
+                    "pages": [
+                      "sandbox/local",
+                      "sandbox/e2b",
+                      "sandbox/vercel",
+                      "sandbox/daytona",
+                      "sandbox/modal",
+                      "sandbox/cloudflare",
+                      "sandbox/firecracker"
+                    ]
+                  }
                 ]
               },
-              "agents/supported-agents",
-              "agents/claude-code",
-              "agents/codex",
-              "agents/opencode",
+
+              {
+                "group": "Agents",
+                "pages": [
+                  "agents/overview",
+                  "agents/claude-code",
+                  "agents/codex",
+                  "agents/opencode"
+                ]
+              },
               "session",
               "transport",
               "deployment"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
             ]
           }
         ]

@@ -5,10 +5,6 @@ description: "SandboxAgent uses Redis for app–sandbox communication; REDIS_URL
 
 SandboxAgent uses **Redis** as the transport layer between your application and the sandbox. Commands (e.g. run an agent task) are published to Redis; the sandbox (or daemon inside it) consumes them and writes results back to streams that your app can read.
 
-<Info>
-  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
-</Info>
-
 ## Prerequisites
 
 - **REDIS_URL** — Required for SandboxAgent. Pass it in options (e.g. `redisUrl: process.env.REDIS_URL`) and it is injected into the sandbox env so the sandbox can connect to the same Redis (e.g. `redis://localhost:6379` or a hosted instance).
@@ -17,7 +13,7 @@ SandboxAgent uses **Redis** as the transport layer between your application and 
 
 1. **Publish a command** — Your app calls `sandbox.publishCommand(...)` with a command type (e.g. `agent:execute`), `sessionId`, and task data. This writes to a Redis stream.
 2. **Sandbox consumes** — The Intella CLI or daemon inside the sandbox reads from that stream and runs the agent (or other command).
-3. **Stream results** — Your app calls `sandbox.streamEvents(StreamEventType.SESSION, { sessionId, ... })` to read agent text chunks from the **session** stream, or `sandbox.streamEvents(StreamEventType.SANDBOX, { commandId })` to read **sandbox command results** for a specific command.
+3. **Stream results** — Your app calls `sandbox.streamEvents(StreamEventType.SESSION, \{ sessionId, ... \})` to read agent text chunks from the **session** stream, or `sandbox.streamEvents(StreamEventType.SANDBOX, \{ commandId \})` to read **sandbox command results** for a specific command.
 
 ## Session vs sandbox streams
 

@@ -5,10 +5,6 @@ description: "Clone, status, branches, commit, push, and pull in the sandbox"
 
 All sandbox providers expose a unified `sandbox.git` API on the instance returned by `initializeSandbox`. Daytona uses native `sandbox.git.*` methods; E2B, Modal, Vercel, and Local use `executeCommand` with the git CLI under the same interface.
 
-<Info>
-  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
-</Info>
-
 ## Methods
 
 | Method | Description |
@@ -20,7 +16,7 @@ All sandbox providers expose a unified `sandbox.git` API on the instance returne
 | `checkoutBranch(repoPath, name)` | Checkout a branch |
 | `deleteBranch(repoPath, name)` | Delete a branch |
 | `add(repoPath, paths)` | Stage files |
-| `commit(repoPath, message, authorName, authorEmail)` | Commit; returns `{ sha }` |
+| `commit(repoPath, message, authorName, authorEmail)` | Commit; returns `\{ sha \}` |
 | `push(repoPath, username?, password?)` | Push to remote |
 | `pull(repoPath, username?, password?)` | Pull from remote |
 

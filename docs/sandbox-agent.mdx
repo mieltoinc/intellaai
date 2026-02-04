@@ -135,8 +135,8 @@ Alternatively, use **publishCommand** + **streamEvents**: publish an `agent:exec
 
 After connecting, you can stream session or sandbox events from the sandbox instance.
 
-- **Session stream** — Agent text chunks, tool calls, etc. Use `sandbox.streamEvents(StreamEventType.SESSION, { sessionId, stopOnDone: true })`.
-- **Sandbox command results** — Results for a specific command. Publish with `sandbox.publishCommand({ type: 'agent:execute', sessionId, data: taskRequest, ... })`, then stream with `sandbox.streamEvents(StreamEventType.SANDBOX, { commandId })`.
+- **Session stream** — Agent text chunks, tool calls, etc. Use `sandbox.streamEvents(StreamEventType.SESSION, \{ sessionId, stopOnDone: true \})`.
+- **Sandbox command results** — Results for a specific command. Publish with `sandbox.publishCommand(\{ type: 'agent:execute', sessionId, data: taskRequest, ... \})`, then stream with `sandbox.streamEvents(StreamEventType.SANDBOX, \{ commandId \})`.
 
 <Note>
   See [stream-events-usage.ts](https://github.com/snowphase/intella/blob/main/packages/intella-sdk/examples/sandbox-agent/stream-events-usage.ts) in the repo for a full example.

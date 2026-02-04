@@ -5,10 +5,6 @@ description: "Modal sandboxes with registry images and secret management"
 
 The **Modal** provider runs sandboxes on Modal with support for registry images and secret management.
 
-<Info>
-  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
-</Info>
-
 ## Environment variables
 
 | Variable | Required | Description |
@@ -20,7 +16,7 @@ The **Modal** provider runs sandboxes on Modal with support for registry images 
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `env` | Record<string, string> | Environment variables in the sandbox |
+| `env` | Record\<string, string\> | Environment variables in the sandbox |
 | Provider-specific options | — | Registry image, secrets, etc. (see Modal docs) |
 | `fromSandboxId` | string | Connect to an existing sandbox (resume) |
 
@@ -42,4 +38,4 @@ await sandbox.close();
 
 ## Next steps
 
-- [Other providers](/sandbox/providers/local) — Local, E2B, Vercel, Daytona
+- [Other providers](/sandbox/providers-local) — Local, E2B, Vercel, Daytona

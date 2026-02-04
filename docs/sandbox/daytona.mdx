@@ -5,10 +5,6 @@ description: "Language-based sandboxes (Python, TypeScript, Go, Rust)"
 
 The **Daytona** provider runs language-based sandboxes (Python, TypeScript, Go, Rust) via the Daytona API.
 
-<Info>
-  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
-</Info>
-
 ## Environment variables
 
 | Variable | Required | Description |
@@ -22,7 +18,7 @@ The **Daytona** provider runs language-based sandboxes (Python, TypeScript, Go, 
 |--------|------|-------------|
 | `templateId` | string | Workspace template ID (e.g. `'default'`) |
 | `baseURL` | string | Override Daytona API URL |
-| `env` | Record<string, string> | Environment variables in the sandbox |
+| `env` | Record\<string, string\> | Environment variables in the sandbox |
 | `fromSandboxId` | string | Connect to an existing sandbox (resume) |
 
 ## Usage
@@ -46,4 +42,4 @@ await sandbox.close();
 ## Next steps
 
 - [Git operations](/sandbox/git-operations) — Daytona supports native git API
-- [Other providers](/sandbox/providers/modal) — Modal, E2B, Vercel, Local
+- [Other providers](/sandbox/providers-modal) — Modal, E2B, Vercel, Local
