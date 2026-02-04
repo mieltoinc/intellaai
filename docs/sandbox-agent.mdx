@@ -1,0 +1,126 @@
+---
+title: "SandboxAgent"
+description: "Create sandboxes and optional sessions in one flow with SandboxAgent from intella"
+---
+
+**SandboxAgent** combines sandbox creation and optional session setup in one flow. You use it when you want a single entry point to spin up a sandbox and, optionally, a session (with post-create setup like `runCmd`, `gitClone`, `npmInstall`).
+
+## API overview
+
+| Method | Purpose |
+|--------|--------|
+| `SandboxAgent.createSandboxAgent(options)` | Create and initialize a sandbox only. Returns `ISandboxProvider`. |
+| `SandboxAgent.connect(options)` | Create sandbox + optional session; returns a `SandboxAgent` instance with `sandbox`, `session` (and optionally `agent`) set. |
+| `instance.init(options?)` | Initialize (or re-init) sandbox and optional session. |
+| `instance.endSession()` | End the current session if any. |
+| `instance.close()` | Close sandbox and clear references. |
+
+## Options (SandboxAgentOptions)
+
+<ResponseField name="redisUrl" type="string" required>
+  Redis URL injected into the sandbox env as `REDIS_URL`. Used for session and command streaming (e.g. `redis://localhost:6379`).
+</ResponseField>
+
+<ResponseField name="sandbox" type="object" required>
+  Sandbox provider and config.
+
+  <Expandable title="Sandbox config">
+    <ResponseField name="provider" type="SandboxProviderType" required>
+      One of: `LOCAL`, `E2B`, `DAYTONA`, `MODAL`, `VERCEL`.
+    </ResponseField>
+    <ResponseField name="config" type="SandboxConfig">
+      Optional. `env`, `templateId`, `timeout`, `cwd`, and provider-specific options.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="agent" type="object">
+  Optional. Used when creating a session. `type`: `AgentType` (e.g. `CLAUDE`, `CODEX`, `OPENCODE`), `config`: optional `AgentConfig` (e.g. `model`, `mcpServers`).
+</ResponseField>
+
+<ResponseField name="session" type="object">
+  Optional. If present, `init()` / `connect()` create a session. `sessionId`: optional string; `postCreate`: optional `SessionInitSetup` (e.g. `runCmd`, `gitClone`, `npmInstall`).
+</ResponseField>
+
+## Sandbox only
+
+Create a sandbox, run a command, then close. No session or agent.
+
+```typescript
+import { SandboxAgent, SandboxProviderType } from 'intella';
+
+const sandbox = await SandboxAgent.createSandboxAgent({
+  redisUrl: process.env.REDIS_URL!,
+  sandbox: {
+    provider: SandboxProviderType.LOCAL,
+    config: { env: {} },
+  },
+});
+
+await sandbox.executeCommand('echo hi');
+await sandbox.close();
+```
+
+## Sandbox + session
+
+Create a sandbox and a session (with optional post-create setup). Use **SandboxAgent.connect** and pass `agent` and `session`.
+
+```typescript
+import { SandboxAgent, SandboxProviderType, AgentType } from 'intella';
+
+const sa = await SandboxAgent.connect({
+  redisUrl: process.env.REDIS_URL!,
+  sandbox: {
+    provider: SandboxProviderType.LOCAL,
+    config: {
+      templateId: 'intella-sdk',
+      env: { REDIS_URL: process.env.REDIS_URL },
+    },
+  },
+  agent: {
+    type: AgentType.CLAUDE,
+    config: { model: 'sonnet' },
+  },
+  session: {
+    sessionId: 'my-session',
+    postCreate: {
+      runCmd: [{ command: 'echo "ready"' }],
+    },
+  },
+});
+
+console.log(sa.session?.id);
+await sa.endSession();
+await sa.close();
+```
+
+## Streaming events
+
+After connecting, you can stream session or sandbox events from the sandbox instance.
+
+- **Session stream** — Agent text chunks, tool calls, etc. Use `sandbox.streamEvents(StreamEventType.Session, sessionId, { redisUrl })`.
+- **Sandbox command results** — Results for a specific command. Publish a command with `sandbox.publishCommand(...)`, then stream with `sandbox.streamEvents(StreamEventType.Sandbox, sandboxId, { commandId, redisUrl })`.
+
+<Note>
+  See [stream-events-usage.ts](https://github.com/snowphase/intella/blob/main/packages/intella-sdk/examples/sandbox-agent/stream-events-usage.ts) in the SDK repo for a full example.
+</Note>
+
+## Prerequisites by provider
+
+| Provider | Required |
+|----------|----------|
+| Local | `REDIS_URL`. For sessions: Intella CLI in sandbox (e.g. `templateId: 'intella-sdk'`), `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` in sandbox env. |
+| E2B | `E2B_API_KEY`, `REDIS_URL`. |
+| Daytona | `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `REDIS_URL`. |
+| Session/agent | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` as needed (in sandbox env). |
+
+## Examples in the SDK
+
+Runnable examples are in the **intella-sdk** repo:
+
+- **basic-usage.ts** — `createSandboxAgent` (sandbox only) and `connect` (sandbox + session).
+- **local-usage.ts** — Local provider only; no API keys.
+- **with-session-and-setup.ts** — `connect` with session and `postCreate` (runCmd, gitClone, autoInstall).
+- **stream-events-usage.ts** — `connect` then `streamEvents` for session and sandbox streams.
+
+Run from the SDK package: `npx tsx examples/sandbox-agent/<file>.ts`.

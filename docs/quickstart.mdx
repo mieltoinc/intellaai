@@ -1,0 +1,148 @@
+---
+title: "QuickStart"
+description: "Install Intella, create a sandbox with SandboxAgent, run a command, and execute an AI task"
+---
+
+This guide gets you from zero to running a command and **executing an AI task** inside an Intella sandbox using **SandboxAgent** from **intella**.
+
+## Prerequisites
+
+- **Node.js** 18+ (or Bun)
+- **Redis** — SandboxAgent injects `REDIS_URL` into the sandbox. Use a local Redis (e.g. `redis://localhost:6379`) for Local sandbox or a hosted instance for sandboxes like E2B, Daytona and Vercel.
+- **Local sandbox**: no API keys. For E2B or Daytona, set `E2B_API_KEY` or `DAYTONA_API_KEY` and `DAYTONA_API_URL` as needed.
+
+<Info>
+  For **sandbox + session** (AI agent in the sandbox), you need agent API keys (e.g. `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) and, for local, the Intella CLI available in the sandbox (e.g. use `templateId: 'intella-sdk'`).
+</Info>
+
+## QuickStart in three steps
+
+<Steps>
+  <Step title="Install the SDK">
+    Add **intella** to your project:
+
+    <CodeGroup>
+      ```bash npm
+      npm install intella
+      ```
+      ```bash bun
+      bun add intella
+      ```
+      ```bash yarn
+      yarn add intella
+      ```
+    </CodeGroup>
+
+    <Check>
+      Your project lists `intella` in its dependencies.
+    </Check>
+  </Step>
+
+  <Step title="Create a sandbox and run a command">
+    Use **SandboxAgent.createSandboxAgent** to create a sandbox (no session). Pass a Redis URL and sandbox config. Then run a command and close.
+
+    ```typescript quickstart.ts
+    import { SandboxAgent, SandboxProviderType } from 'intella';
+
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+
+    const sandbox = await SandboxAgent.createSandboxAgent({
+      redisUrl,
+      sandbox: {
+        provider: SandboxProviderType.LOCAL,
+        config: {
+          env: { NODE_ENV: 'development' },
+        },
+      },
+    });
+
+    console.log('Sandbox ID:', sandbox.getSandboxId());
+
+    const result = await sandbox.executeCommand('echo "Hello from Intella"');
+    console.log('Output:', result.stdout?.toString?.() ?? result.stdout);
+
+    await sandbox.close();
+    ```
+
+    Run the script (e.g. `npx tsx quickstart.ts`). Ensure Redis is running and `REDIS_URL` is set if you use a non-default URL.
+
+    <Check>
+      You see the sandbox ID and the command output, then the sandbox closes.
+    </Check>
+  </Step>
+
+  <Step title="Execute a task (sandbox + session)">
+    To run an **AI agent task** in a sandbox, create a sandbox and session with **SandboxAgent.connect**, then call **sandbox.executeAgent** with a **TaskRequest** and stream the response.
+
+    ```typescript quickstart-execute-task.ts
+    import { SandboxAgent, AgentType, SandboxProviderType } from 'intella';
+
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const sessionId = 'quickstart-session';
+
+    const sa = await SandboxAgent.connect({
+      redisUrl,
+      sandbox: {
+        provider: SandboxProviderType.LOCAL,
+        config: {
+          templateId: 'intella-sdk',
+          env: {
+            ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
+            REDIS_URL: redisUrl,
+          },
+          timeout: 120_000,
+        },
+      },
+      agent: { type: AgentType.CLAUDE, config: { model: 'sonnet' } },
+      session: { sessionId, postCreate: { runCmd: [{ command: 'echo "ready"' }] } },
+    });
+
+    if (!sa.sandbox || !sa.session) throw new Error('Sandbox or session not created');
+
+    await sa.sandbox.ensureDaemonRunning?.();
+
+    const taskRequest = {
+      sessionId,
+      prompt: 'Write a one-sentence greeting.',
+      agentType: AgentType.CLAUDE,
+      model: 'sonnet',
+    };
+
+    console.log('Agent response:');
+    for await (const chunk of sa.sandbox.executeAgent(taskRequest, undefined, {
+      redisUrl,
+      apiKeys: {
+        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
+      },
+    })) {
+      if (chunk.chunk) process.stdout.write(chunk.chunk);
+    }
+    console.log('\n');
+
+    await sa.sandbox.endSession(sessionId);
+    await sa.close();
+    ```
+
+    **TaskRequest** must include `sessionId`, `prompt`, and (optionally) `agentType` and `model`. **executeAgent** yields stream chunks; use `chunk.chunk` for text. Pass `apiKeys` so the agent can call the model API from the sandbox.
+
+    <Warning>
+      Local execution requires the Intella CLI in the sandbox (e.g. `templateId: 'intella-sdk'`) and `ANTHROPIC_API_KEY` (and `OPENAI_API_KEY` if needed) in the sandbox env or in `apiKeys`.
+    </Warning>
+
+    <Check>
+      You see the agent's text response streamed, then the session and sandbox close.
+    </Check>
+  </Step>
+</Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="SandboxAgent guide" icon="cube" href="/sandbox-agent">
+    Using Sandbox Agent
+  </Card>
+  <Card title="API reference" icon="terminal" href="/api-reference/introduction">
+    Intella API authentication and base URL.
+  </Card>
+</CardGroup>
+

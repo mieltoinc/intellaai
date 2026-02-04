@@ -72,6 +72,130 @@ _ **Agent executions** – Agents task requests and executions are automatically
 
 This architecture gives you durable, resumable agent execution with live streaming, backed by Redis.
 
+## Using SandboxAgent
+
+**SandboxAgent** combines **sandbox** and optional **session** in one flow. Use it when you want a single entry point to create a sandbox and optionally a session (with post-create setup like `runCmd`, `gitClone`, `npmInstall`).
+
+**Prerequisites:** `REDIS_URL` (e.g. `redis://localhost:6379`). For local sandbox no API keys; for E2B set `E2B_API_KEY`; for session/agent set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` as needed.
+
+### API overview
+
+| Method | Purpose |
+|--------|--------|
+| `SandboxAgent.createSandboxAgent(options)` | Create and initialize a sandbox only. Returns `ISandboxProvider`. |
+| `SandboxAgent.connect(options)` | Create sandbox + optional session; returns a `SandboxAgent` instance with `sandbox`, `session` (and optionally `agent`) set. |
+| `instance.endSession()` | End the current session if any. |
+| `instance.close()` | Close sandbox and clear references. |
+
+Options: **redisUrl**, **sandbox** `{ provider, config? }`, **agent** (optional) `{ type: AgentType, config? }`, **session** (optional) `{ sessionId?, postCreate?: SessionInitSetup }` for setup (runCmd, gitClone, npmInstall, etc.).
+
+### Sandbox only
+
+```typescript
+import { SandboxAgent, SandboxProviderType } from 'intella';
+
+const sandbox = await SandboxAgent.createSandboxAgent({
+  redisUrl: process.env.REDIS_URL!,
+  sandbox: { provider: SandboxProviderType.LOCAL, config: { env: {} } },
+});
+await sandbox.executeCommand('echo hi');
+await sandbox.close();
+```
+
+### Sandbox + session
+
+```typescript
+import { SandboxAgent, SandboxProviderType, AgentType } from 'intella';
+
+const sa = await SandboxAgent.connect({
+  redisUrl: process.env.REDIS_URL!,
+  sandbox: {
+    provider: SandboxProviderType.LOCAL,
+    config: { env: { REDIS_URL: process.env.REDIS_URL }, templateId: 'intella-sdk' },
+  },
+  agent: { type: AgentType.CLAUDE, config: { model: 'sonnet' } },
+  session: {
+    sessionId: 'my-session',
+    postCreate: { runCmd: [{ command: 'echo "ready"' }] },
+  },
+});
+console.log(sa.session?.id);
+await sa.endSession();
+await sa.close();
+```
+
+### Streaming with streamEvents
+
+Use `sandbox.streamEvents(StreamEventType.Session, sessionId, options)` to consume agent text chunks from the session stream, or `streamEvents(StreamEventType.Sandbox, sandboxId, { commandId, ... })` for command results from the sandbox results stream.
+
+```typescript
+import { SandboxAgent, SandboxProviderType, AgentType, StreamEventType } from 'intella';
+
+const sa = await SandboxAgent.connect({ /* redisUrl, sandbox, agent, session */ });
+const sandbox = sa.sandbox!;
+const sessionId = sa.session!.id;
+
+// Publish a command, then stream session chunks
+await sandbox.publishCommand({ type: 'agent:execute', sessionId, data: taskRequest, ... }, redisUrl);
+for await (const chunk of sandbox.streamEvents(StreamEventType.Session, sessionId, { redisUrl })) {
+  if (chunk.chunk) process.stdout.write(chunk.chunk);
+}
+```
+
+For full examples (basic-usage, local-usage, with-session-and-setup, stream-events-usage), see the **SandboxAgent** examples in the Intella SDK: `packages/intella-sdk/examples/sandbox-agent/`.
+
+### Using sandbox.createSession()
+
+Once you have a sandbox (from `Intella.initializeSandbox()` or `SandboxAgent.createSandboxAgent()` / `SandboxAgent.connect()`), create a session with `sandbox.createSession()`. The session runs inside the sandbox and is used for agent execution (e.g. `sandbox.executeAgent()` or `sandbox.publishCommand()` + `streamEvents()`).
+
+**Options:** `sessionId?`, `agentType`, `model?`, `metadata?`, `setup?` (`SessionInitSetup`: `runCmd`, `gitClone`, `npmInstall`, etc.).
+
+**Minimal:**
+
+```typescript
+import { Intella, SandboxProviderType, AgentType } from 'intella';
+
+const intella = new Intella();
+const sandbox = await intella.initializeSandbox(SandboxProviderType.LOCAL, {
+  config: { env: { REDIS_URL: process.env.REDIS_URL } },
+});
+await sandbox.ensureDaemonRunning?.();
+
+const session = await sandbox.createSession({
+  agentType: AgentType.CLAUDE,
+  model: 'sonnet',
+});
+console.log('Session:', session.id, session.status);
+
+// Later: end session and close sandbox
+await sandbox.endSession(session.id);
+await intella.closeSandbox();
+```
+
+**With setup (gitClone, runCmd):**
+
+```typescript
+const session = await sandbox.createSession({
+  sessionId: 'my-session',
+  agentType: AgentType.CLAUDE,
+  model: 'sonnet',
+  setup: {
+    gitClone: [
+      {
+        url: 'https://github.com/user/project.git',
+        options: { path: '/workspace', branch: 'main', autoInstall: true },
+      },
+    ],
+    runCmd: [
+      { command: 'npm install', options: { path: '/workspace/project' } },
+    ],
+  },
+  metadata: { project: 'my-project' },
+});
+```
+
+The returned session has a `.close()` method you can call instead of `sandbox.endSession(session.id)`. Related: `sandbox.getSession(sessionId)`, `sandbox.endSession(sessionId)`, `sandbox.runSessionSetup(sessionId, setup)`.
+
 ## Demo: create a sandbox, clone a repo, run a command
 
 Use sandbox setup to clone a repo and run a command:
