@@ -1,0 +1,48 @@
+---
+title: "Session"
+description: "Sessions are created automatically; pass or generate sessionId, resume or send more messages"
+---
+
+Sessions group conversation and agent execution in a sandbox. With [SandboxAgent](/sandbox-agent), sessions are created automatically when you pass the `session` option to `SandboxAgent.connect`.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## How sessions work
+
+- **Created automatically** — When you use `SandboxAgent.connect` with a `session` option (and optionally `sessionId` and `postCreate` setup), a session is created as part of the flow.
+- **Session ID** — You can pass a `sessionId`; if you omit it, one is generated. Use the same `sessionId` to **resume** that session or to **send additional messages** in the same conversation.
+- **Manual management** — You can create and manage sessions manually using a sandbox instance (e.g. connect with a specific `sessionId`, then call `executeAgent` or `streamEvents` with that id). For full control, use the sandbox’s session-related APIs after connecting.
+
+## Resuming or continuing a session
+
+Pass an **existing** `sessionId` when connecting if you want to resume that session or add more messages to it:
+
+```typescript
+const sa = await SandboxAgent.connect({
+  redisUrl,
+  sandbox: { provider: SandboxProviderType.LOCAL, config: { ... } },
+  agent: { type: AgentType.CLAUDE, config: { model: 'sonnet' } },
+  session: {
+    sessionId: 'my-existing-session',  // resume or send more messages
+    postCreate: { runCmd: [{ command: 'echo "ready"' }] },
+  },
+});
+```
+
+When calling `executeAgent`, always include the same `sessionId` in the **TaskRequest** so the agent runs in that session.
+
+## Ending a session
+
+When you are done with a session, end it and close the sandbox:
+
+```typescript
+await sandbox.endSession(sessionId);
+await sa.close();
+```
+
+## Next steps
+
+- [SandboxAgent](/sandbox-agent) — Create sandbox + session in one flow and execute tasks.
+- [Transport (Redis Stream)](/transport) — How Redis is used for session and command streaming.

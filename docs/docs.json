@@ -23,7 +23,13 @@
           {
             "group": "Using Intella",
             "pages": [
-              "sandbox-agent"
+              "sandbox-agent",
+              "sandbox",
+              "sandbox-providers",
+              "agents-vanilla",
+              "session",
+              "transport",
+              "deployment"
             ]
           }
         ]

@@ -1,9 +1,17 @@
 ---
 title: "SandboxAgent"
-description: "Create sandboxes and optional sessions in one flow with SandboxAgent from intella"
+description: "Create sandboxes and optional sessions in one flow with SandboxAgent from Intella"
 ---
 
-**SandboxAgent** combines sandbox creation and optional session setup in one flow. You use it when you want a single entry point to spin up a sandbox and, optionally, a session (with post-create setup like `runCmd`, `gitClone`, `npmInstall`).
+**SandboxAgent** is the recommended way to use Intella. It combines sandbox creation, optional agent setup, and session creation in one flow—so you avoid wiring the sandbox, Redis, session, and agent yourself.
+
+Use it when you want a single entry point to spin up a sandbox and, optionally, a session (with post-create setup like `runCmd`, `gitClone`, `npmInstall`), then execute tasks and stream events.
+
+## Prerequisites
+
+- **REDIS_URL** — e.g. `redis://localhost:6379` (injected into the sandbox env).
+- **E2B** (if using E2B sandbox): `E2B_API_KEY`.
+- **Session/agent**: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` as needed (in sandbox env or passed in `apiKeys`).
 
 ## API overview
 
@@ -94,15 +102,44 @@ await sa.endSession();
 await sa.close();
 ```
 
+## Execute task and stream
+
+After connecting with a session, execute an agent task and stream response chunks:
+
+```typescript
+import { SandboxAgent, AgentType, SandboxProviderType, StreamEventType } from 'intella';
+
+const sa = await SandboxAgent.connect({ redisUrl, sandbox: { ... }, agent: { ... }, session: { sessionId, ... } });
+const sandbox = sa.sandbox!;
+const sessionId = sa.session!.id;
+
+const taskRequest = {
+  sessionId,
+  prompt: 'List files in the workspace.',
+  agentType: AgentType.CLAUDE,
+  model: 'sonnet',
+};
+
+for await (const chunk of sandbox.executeAgent(taskRequest, AgentType.CLAUDE, {
+  apiKeys: { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '' },
+})) {
+  if (chunk.chunk) process.stdout.write(chunk.chunk);
+}
+```
+
+**TaskRequest** must include `sessionId` for `executeAgent`. Pass `apiKeys` so the agent can call the model from the sandbox.
+
+Alternatively, use **publishCommand** + **streamEvents**: publish an `agent:execute` command, then consume the session or sandbox stream (see [Transport (Redis Stream)](/transport)).
+
 ## Streaming events
 
 After connecting, you can stream session or sandbox events from the sandbox instance.
 
-- **Session stream** — Agent text chunks, tool calls, etc. Use `sandbox.streamEvents(StreamEventType.Session, sessionId, { redisUrl })`.
-- **Sandbox command results** — Results for a specific command. Publish a command with `sandbox.publishCommand(...)`, then stream with `sandbox.streamEvents(StreamEventType.Sandbox, sandboxId, { commandId, redisUrl })`.
+- **Session stream** — Agent text chunks, tool calls, etc. Use `sandbox.streamEvents(StreamEventType.SESSION, { sessionId, stopOnDone: true })`.
+- **Sandbox command results** — Results for a specific command. Publish with `sandbox.publishCommand({ type: 'agent:execute', sessionId, data: taskRequest, ... })`, then stream with `sandbox.streamEvents(StreamEventType.SANDBOX, { commandId })`.
 
 <Note>
-  See [stream-events-usage.ts](https://github.com/snowphase/intella/blob/main/packages/intella-sdk/examples/sandbox-agent/stream-events-usage.ts) in the SDK repo for a full example.
+  See [stream-events-usage.ts](https://github.com/snowphase/intella/blob/main/packages/intella-sdk/examples/sandbox-agent/stream-events-usage.ts) in the repo for a full example.
 </Note>
 
 ## Prerequisites by provider
@@ -114,9 +151,20 @@ After connecting, you can stream session or sandbox events from the sandbox inst
 | Daytona | `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `REDIS_URL`. |
 | Session/agent | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` as needed (in sandbox env). |
 
-## Examples in the SDK
+## Key types
 
-Runnable examples are in the **intella-sdk** repo:
+| Type | Description |
+|------|-------------|
+| `SandboxAgentOptions` | `redisUrl`, `sandbox`, `agent?`, `session?` |
+| `StreamEventType.SESSION` | Stream agent text chunks from session stream |
+| `StreamEventType.SANDBOX` | Stream command results (chunk, done, error) from sandbox stream |
+| `TaskRequest` | Must include `sessionId` for `executeAgent` |
+| `SandboxAgentStreamChunk` | `chunk?`, `isDone?`, `type?`, `data?` |
+| `SandboxCommandResult` | `commandId`, `type`, `data?`, `error?` |
+
+## Examples in the repo
+
+Runnable examples are in the SDK package:
 
 - **basic-usage.ts** — `createSandboxAgent` (sandbox only) and `connect` (sandbox + session).
 - **local-usage.ts** — Local provider only; no API keys.

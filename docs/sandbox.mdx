@@ -1,0 +1,174 @@
+---
+title: "Sandbox"
+description: "Create sandboxes, connect to existing ones, and run command, code, file, and git operations"
+---
+
+Sandbox operations run inside an isolated environment (E2B, Daytona, Modal, Vercel, or local). You **initialize** a sandbox, perform **command**, **code**, **file**, and **git** operations, then **close** it. This page uses the **IntellaSDK** facade; for the recommended single-entry flow (sandbox + optional session), use [SandboxAgent](/sandbox-agent).
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Creating a sandbox
+
+Create a new sandbox by calling `initializeSandbox` with a provider and config. Use the `SandboxProviderType` enum (e.g. `SandboxProviderType.E2B`).
+
+```typescript
+import { IntellaSDK, SandboxProviderType } from 'intella';
+
+const sdk = new IntellaSDK();
+
+// Create new sandbox
+await sdk.initializeSandbox(SandboxProviderType.E2B, { templateId: 'base' });
+
+// ... run operations ...
+
+await sdk.closeSandbox();
+```
+
+## Connecting to an existing sandbox
+
+To resume or reconnect to an existing sandbox, pass `fromSandboxId` in the config. Useful for Modal and Daytona; E2B sandboxes are often ephemeral.
+
+```typescript
+await sdk.initializeSandbox(SandboxProviderType.E2B, { fromSandboxId: 'sbx-xxx' });
+```
+
+The **active sandbox** is the one last initialized. Use `sdk.getActiveSandbox()` for file and code operations; use `sdk.executeInSandbox(...)` for commands.
+
+## Command operations
+
+Run a shell command in the active sandbox.
+
+**Via SDK** (returns result plus sandboxId and provider):
+
+```typescript
+const out = await sdk.executeInSandbox('npm test', {
+  cwd: '/app',
+  env: { NODE_ENV: 'test' },
+  timeout: 60_000,
+});
+// out.result.exitCode, out.result.stdout, out.result.stderr, out.result.executionTime
+```
+
+**Via provider** (raw `CommandResult`):
+
+```typescript
+const sandbox = sdk.getActiveSandbox();
+if (sandbox) {
+  const result = await sandbox.executeCommand('ls -la', { cwd: '/tmp' });
+  // result.exitCode, result.stdout, result.stderr, result.executionTime
+}
+```
+
+**CommandResult**: `exitCode`, `stdout`, `stderr`, `executionTime?` (ms).
+
+## Code operations
+
+Run interpreted code (e.g. Python, JavaScript) in the sandbox. Use the **provider** from `sdk.getActiveSandbox()`; there is no SDK facade for `runCode`.
+
+```typescript
+const sandbox = sdk.getActiveSandbox();
+if (!sandbox) throw new Error('No active sandbox');
+
+const codeResult = await sandbox.runCode(
+  'print(2 + 2)\nimport sys\nprint(sys.version)',
+  {
+    language: 'python3',
+    timeout: 30_000,
+    onStdout: (line) => console.log('stdout:', line),
+    onStderr: (line) => console.error('stderr:', line),
+  }
+);
+// codeResult.text, codeResult.results[], codeResult.stdout[], codeResult.stderr[]
+// codeResult.error?, codeResult.executionTime?
+```
+
+**CodeExecutionResult**: `text?`, `results[]`, `stdout[]`, `stderr[]`, `error?`, `executionTime?` (ms).
+
+## File operations
+
+All file operations are on the provider from `sdk.getActiveSandbox()`. Paths are inside the sandbox (remote).
+
+| Method | Description |
+|--------|-------------|
+| `readFile(path, opts?)` | Read file; `opts.format`: `'text'` (default), `'bytes'`, `'blob'`, `'stream'` |
+| `writeFile(path, content)` | Write single file; `content`: string, Buffer, Blob, ReadableStream, Uint8Array |
+| `writeFile(entries)` | Write multiple files; `entries`: `Array<{ path, content }>` |
+| `createDirectory(path, opts?)` | Create directory; `opts.recursive` defaults to true |
+| `listFiles(path)` | List directory entries → string[] |
+| `fileExists(path)` | Check if path exists → boolean |
+| `deleteFile(path)` | Delete file in sandbox |
+| `uploadFile(source, remotePath)` | Upload one file; `source`: local path or `http(s)://` / `file://` URL |
+| `uploadFile(entries)` | Upload multiple; `entries`: `Array<{ source, remotePath }>` |
+| `downloadFile(remotePath, localPath)` | Copy from sandbox to host |
+
+```typescript
+const sandbox = sdk.getActiveSandbox();
+if (!sandbox) throw new Error('No active sandbox');
+
+await sandbox.writeFile('/tmp/script.py', 'print("hello")');
+const content = await sandbox.readFile('/tmp/script.py');
+await sandbox.createDirectory('/tmp/out', { recursive: true });
+const files = await sandbox.listFiles('/tmp');
+await sandbox.uploadFile('./local-file.txt', '/remote/file.txt');
+await sandbox.downloadFile('/remote/output.txt', './local-output.txt');
+```
+
+## Git operations
+
+All sandbox providers expose a unified `sandbox.git` API.
+
+| Method | Description |
+|--------|-------------|
+| `clone(url, parentPath, options?)` | Clone repo; options: `branch`, `commitId`, `username`, `password`, `pullOnExists` |
+| `status(repoPath)` | Repository status (currentBranch, ahead, behind, fileStatus) |
+| `branches(repoPath)` | List branches |
+| `createBranch`, `checkoutBranch`, `deleteBranch` | Branch management |
+| `add`, `commit` | Stage and commit |
+| `push`, `pull` | Sync with remote (optional auth) |
+
+```typescript
+const sandbox = sdk.getActiveSandbox();
+if (!sandbox) throw new Error('No active sandbox');
+
+await sandbox.git.clone('https://github.com/user/repo.git', 'workspace/repos', { branch: 'main' });
+const REPO_PATH = 'workspace/repos/repo';
+const status = await sandbox.git.status(REPO_PATH);
+const { branches } = await sandbox.git.branches(REPO_PATH);
+await sandbox.git.add(REPO_PATH, ['.']);
+await sandbox.git.commit(REPO_PATH, 'feat: add X', 'Author', 'author@example.com');
+await sandbox.git.push(REPO_PATH);
+```
+
+## Sandbox setup configuration
+
+`SandboxConfig` supports setup arrays that run when a sandbox is initialized or resumed. Each entry can specify `run?: 'creation' | 'resume' | 'default'`, `background?`, `timeout?`, `path?`.
+
+| Property | Description |
+|----------|-------------|
+| `runCmd` | Run shell commands |
+| `npmInstall` | Install npm packages |
+| `bunInstall` | Install bun packages (auto-installs bun if needed) |
+| `aptInstall` | Install apt packages (auto-runs apt-get update) |
+| `pipInstall` | Install pip packages (supports venv) |
+| `gitClone` | Clone git repositories (supports autoInstall, onSuccess) |
+
+```typescript
+await sdk.initializeSandbox(SandboxProviderType.E2B, {
+  templateId: 'base',
+  env: { NODE_ENV: 'development' },
+  aptInstall: [{ packages: ['git', 'curl'], options: { run: 'creation' } }],
+  gitClone: [{
+    url: 'https://github.com/user/my-project.git',
+    options: { path: '/home/user/project', autoInstall: true },
+  }],
+  npmInstall: [{ packages: ['typescript', 'tsx'], options: { g: true } }],
+  runCmd: [{ command: 'npm run build', options: { path: '/home/user/project', background: true } }],
+});
+```
+
+## Next steps
+
+- [Sandbox providers](/sandbox-providers) — E2B, Vercel, Modal, Daytona, Local.
+- [SandboxAgent](/sandbox-agent) — Recommended single entry for sandbox + session + agent.

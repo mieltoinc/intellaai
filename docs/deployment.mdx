@@ -1,0 +1,53 @@
+---
+title: "Deployment"
+description: "Deploy Intella on Vercel and use the Vercel sandbox provider"
+---
+
+Intella works on **Vercel**. You can run your app on Vercel and use the Vercel sandbox provider when you need sandboxes in the cloud.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Vercel
+
+- **App deployment** — Deploy your Next.js, Node, or other app to Vercel as usual. Intella runs in your serverless or Node runtime.
+- **Vercel sandbox provider** — When you want sandboxes to run on Vercel infrastructure, use `SandboxProviderType.VERCEL` with IntellaSDK or SandboxAgent.
+
+### Environment variables
+
+Set these in your Vercel project (or use Vercel OIDC for tokens):
+
+| Variable | Description |
+|----------|-------------|
+| `VERCEL_OIDC_TOKEN` | OIDC token for Vercel (when using OIDC) |
+| `VERCEL_TEAM_ID` | Team ID (alternative to OIDC) |
+| `VERCEL_PROJECT_ID` | Project ID |
+| `VERCEL_TOKEN` | Vercel API token |
+
+For SandboxAgent you also need **REDIS_URL** (and agent keys like **ANTHROPIC_API_KEY** / **OPENAI_API_KEY** if using sessions).
+
+### Using the Vercel sandbox
+
+```typescript
+import { SandboxAgent, SandboxProviderType } from 'intella';
+
+const sandbox = await SandboxAgent.createSandboxAgent({
+  redisUrl: process.env.REDIS_URL!,
+  sandbox: {
+    provider: SandboxProviderType.VERCEL,
+    config: {
+      env: { NODE_ENV: 'production' },
+      // provider-specific config as needed
+    },
+  },
+});
+
+await sandbox.executeCommand('echo "Hello from Vercel sandbox"');
+await sandbox.close();
+```
+
+## Next steps
+
+- [Sandbox providers](/sandbox-providers) — Full table of providers including Vercel env vars.
+- [SandboxAgent](/sandbox-agent) — Recommended flow for sandbox + session on Vercel.

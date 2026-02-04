@@ -1,0 +1,56 @@
+---
+title: "Transport (Redis Stream)"
+description: "SandboxAgent uses Redis for app–sandbox communication; REDIS_URL, publishCommand, streamEvents"
+---
+
+SandboxAgent uses **Redis** as the transport layer between your application and the sandbox. Commands (e.g. run an agent task) are published to Redis; the sandbox (or daemon inside it) consumes them and writes results back to streams that your app can read.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Prerequisites
+
+- **REDIS_URL** — Required for SandboxAgent. Pass it in options (e.g. `redisUrl: process.env.REDIS_URL`) and it is injected into the sandbox env so the sandbox can connect to the same Redis (e.g. `redis://localhost:6379` or a hosted instance).
+
+## How it works
+
+1. **Publish a command** — Your app calls `sandbox.publishCommand(...)` with a command type (e.g. `agent:execute`), `sessionId`, and task data. This writes to a Redis stream.
+2. **Sandbox consumes** — The Intella CLI or daemon inside the sandbox reads from that stream and runs the agent (or other command).
+3. **Stream results** — Your app calls `sandbox.streamEvents(StreamEventType.SESSION, { sessionId, ... })` to read agent text chunks from the **session** stream, or `sandbox.streamEvents(StreamEventType.SANDBOX, { commandId })` to read **sandbox command results** for a specific command.
+
+## Session vs sandbox streams
+
+- **StreamEventType.SESSION** — Streams agent output (text chunks, tool calls, etc.) for a session. Use when you want to consume the agent’s response stream (e.g. `chunk.chunk` for text).
+- **StreamEventType.SANDBOX** — Streams command results (chunk, done, error) for a given `commandId`. Use when you publish a command, get back a `commandId`, and want to iterate over that command’s results.
+
+## Example
+
+After connecting with SandboxAgent, you can publish an agent task and stream session chunks:
+
+```typescript
+import { SandboxAgent, AgentType, SandboxProviderType, StreamEventType } from 'intella';
+
+const sa = await SandboxAgent.connect({ redisUrl, sandbox: { ... }, agent: { ... }, session: { sessionId } });
+const sandbox = sa.sandbox!;
+
+await sandbox.publishCommand({
+  type: 'agent:execute',
+  sessionId,
+  data: { sessionId, prompt: 'Reply with 42 only.', agentType: AgentType.CLAUDE, model: 'sonnet' },
+  metadata: {},
+  apiKeys: { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '' },
+  env: {},
+});
+
+for await (const chunk of sandbox.streamEvents(StreamEventType.SESSION, { sessionId, stopOnDone: true })) {
+  if (chunk.chunk) process.stdout.write(chunk.chunk);
+}
+```
+
+For a full example of `publishCommand` and `streamEvents`, see [stream-events-usage.ts](https://github.com/snowphase/intella/blob/main/packages/intella-sdk/examples/sandbox-agent/stream-events-usage.ts) in the repo.
+
+## Next steps
+
+- [SandboxAgent](/sandbox-agent) — Connect with `redisUrl` and use `executeAgent` or `streamEvents`.
+- [Session](/session) — Sessions and sessionId for agent execution.

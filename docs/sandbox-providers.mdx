@@ -1,0 +1,61 @@
+---
+title: "Sandbox providers"
+description: "E2B, Vercel, Modal, Daytona, Local—and coming soon: Cloudflare, Firecracker"
+---
+
+Intella supports multiple sandbox providers. Use the **SandboxProviderType** enum when initializing a sandbox (e.g. `SandboxProviderType.E2B`); avoid string literals.
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Available providers
+
+| Provider | Enum | Environment variables | Description |
+|----------|------|------------------------|-------------|
+| **E2B** | `SandboxProviderType.E2B` | `E2B_API_KEY` | Code interpreter with template support; Python/JS execution. |
+| **Vercel** | `SandboxProviderType.VERCEL` | `VERCEL_OIDC_TOKEN` or `VERCEL_TEAM_ID`, `VERCEL_PROJECT_ID`, `VERCEL_TOKEN` | Vercel-based sandbox. |
+| **Modal** | `SandboxProviderType.MODAL` | `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET` | Registry image support, secret management. |
+| **Daytona** | `SandboxProviderType.DAYTONA` | `DAYTONA_API_KEY`, `DAYTONA_API_URL` | Language-based sandboxes (Python, TypeScript, Go, Rust). |
+| **Local** | `SandboxProviderType.LOCAL` | None | Runs on the current machine; uses `cwd` as base directory; machine-specific sandbox ID. |
+
+## Usage
+
+```typescript
+import { IntellaSDK, SandboxProviderType } from 'intella';
+
+const sdk = new IntellaSDK();
+
+// E2B
+await sdk.initializeSandbox(SandboxProviderType.E2B, { templateId: 'base' });
+
+// Vercel
+await sdk.initializeSandbox(SandboxProviderType.VERCEL, { /* config */ });
+
+// Modal
+await sdk.initializeSandbox(SandboxProviderType.MODAL, { /* config */ });
+
+// Daytona
+await sdk.initializeSandbox(SandboxProviderType.DAYTONA, {
+  templateId: 'default',
+  baseURL: process.env.DAYTONA_API_URL || 'http://localhost:3000',
+});
+
+// Local (no API keys)
+await sdk.initializeSandbox(SandboxProviderType.LOCAL, { cwd: process.cwd() });
+
+await sdk.closeSandbox();
+```
+
+## Coming soon
+
+- **Cloudflare** — Sandbox provider on Cloudflare.
+- **Firecracker** — Firecracker-based sandbox provider.
+
+No code or env vars are documented until these providers are available.
+
+## Next steps
+
+- [Sandbox](/sandbox) — Lifecycle and operations (commands, code, files, git).
+- [SandboxAgent](/sandbox-agent) — Use a provider with SandboxAgent for sandbox + session in one flow.
+- [Deployment](/deployment) — Deploy on Vercel.

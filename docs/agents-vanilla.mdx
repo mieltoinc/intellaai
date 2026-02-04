@@ -1,0 +1,73 @@
+---
+title: "Agents (vanilla)"
+description: "Use agents without a sandbox—same as calling OpenAI or the AI SDK directly"
+---
+
+Using agents in the **vanilla** way means no sandbox: the agent runs in your process, like calling the OpenAI API or the AI SDK. There is no isolated environment, no command execution, and no file or git operations in a remote sandbox. For sandbox-backed agents, use [SandboxAgent](/sandbox-agent).
+
+<Info>
+  All code samples use the `intella` package. Install with `npm install intella` and import from `'intella'`.
+</Info>
+
+## Initializing and using agents
+
+Create an **IntellaSDK** instance, **select** an agent by type and optional config, then **execute** or **stream** a task.
+
+```typescript
+import { IntellaSDK, AgentType } from 'intella';
+
+const sdk = new IntellaSDK();
+
+// Select and configure agent (use enum, not string literals)
+sdk.selectAgent(AgentType.CLAUDE, { model: 'sonnet' });
+
+// Execute task
+const response = await sdk.executeTask({ prompt: 'Explain quantum computing in 2 sentences.' });
+console.log(response.text, response.agentType, response.metadata);
+```
+
+## Execute and stream
+
+- **executeTask** — Returns a **TaskResponse** with `text`, `agentType`, and optional `metadata` (e.g. usage, finishReason).
+- **streamTask** — Returns an async iterable of chunks; use `chunk.text` and `chunk.isDone` to stream the response.
+
+```typescript
+// Stream task
+for await (const chunk of sdk.streamTask({ prompt: 'Write a short poem.' })) {
+  if (!chunk.isDone) process.stdout.write(chunk.text);
+}
+```
+
+**TaskRequest** can include `prompt`, `systemPrompt?`, `messages?`, `temperature?`, `maxTokens?`.
+
+## Supported agents
+
+| Agent | AgentType | Provider | Default model | Auth |
+|-------|-----------|----------|----------------|------|
+| **Claude Code** | `AgentType.CLAUDE` | ai-sdk-provider-claude-code | sonnet | `claude login` CLI |
+| **Codex** | `AgentType.CODEX` | ai-sdk-provider-codex-cli | gpt-5.2-codex | OPENAI_API_KEY |
+| **OpenCode** | `AgentType.OPENCODE` | ai-sdk-provider-opencode-sdk | anthropic/claude-sonnet-4-5 | `opencode login` CLI |
+
+- **Claude Code**: Best for coding and reasoning; config `model`: `'opus'` \| `'sonnet'` \| `'haiku'`.
+- **Codex**: OpenAI-powered; supports reasoning effort, approvals, sandbox mode.
+- **OpenCode**: Multi-provider; use `model: 'provider/model-id'`.
+
+All are used the same way: `sdk.selectAgent(AgentType.CLAUDE | AgentType.CODEX | AgentType.OPENCODE, config)` then `sdk.executeTask(request)` or `sdk.streamTask(request)`.
+
+## Optional: orchestration
+
+You can run multiple agents in sequence or parallel with **orchestrateTask**:
+
+```typescript
+const result = await sdk.orchestrateTask(
+  { prompt: 'Analyze this code' },
+  [AgentType.CLAUDE, AgentType.CODEX],
+  'parallel',  // or 'sequential', 'conditional'
+  { combineStrategy: 'merge' }
+);
+```
+
+## Next steps
+
+- [SandboxAgent](/sandbox-agent) — Run agents inside a sandbox with sessions and streaming.
+- [Sandbox](/sandbox) — Sandbox lifecycle and operations.

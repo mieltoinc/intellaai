@@ -1,6 +1,6 @@
 {
   "name": "intella",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Universal SDK for delegating tasks to durable agents in sandboxes.",
   "license": "ISC",
   "author": "hi@mielto.com",
