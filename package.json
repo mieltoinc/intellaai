@@ -1,0 +1,79 @@
+{
+  "name": "intella",
+  "version": "0.0.1",
+  "description": "Universal SDK for delegating tasks to durable agents in sandboxes.",
+  "license": "ISC",
+  "author": "hi@mielto.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mielto/intellaai.git",
+    "directory": "packages/intellaai"
+  },
+  "keywords": [
+    "intella",
+    "ai",
+    "sdk",
+    "agent",
+    "sandbox",
+    "orchestrator",
+    "openai",
+    "anthropic",
+    "claude",
+    "codex",
+    "opencode",
+    "claude-code"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js"
+    },
+    "./types": {
+      "import": "./dist/types.js",
+      "types": "./dist/types.d.ts",
+      "require": "./dist/types.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "scripts/postinstall.cjs"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "postinstall": "node scripts/postinstall.cjs",
+    "example:basic": "tsx examples/basic-usage.ts",
+    "example:local-sandbox": "tsx examples/local-sandbox.ts",
+    "example:session": "tsx examples/session-and-agent.ts",
+    "example:claude": "tsx examples/agents/claude-agent.ts",
+    "example:codex": "tsx examples/agents/codex-agent.ts",
+    "example:opencode": "tsx examples/agents/opencode-agent.ts",
+    "example:e2b": "tsx examples/sandbox/e2b-usage.ts",
+    "example:daytona": "tsx examples/sandbox/daytona-usage.ts",
+    "example:modal": "tsx examples/sandbox/modal-usage.ts",
+    "example:vercel": "tsx examples/sandbox/vercel-usage.ts",
+    "example:local": "tsx examples/sandbox/local-usage.ts"
+  },
+  "dependencies": {
+    "@intella/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "dotenv": "^16.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
